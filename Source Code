@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>National TV Sales & Rental – Customer Order Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- jsPDF + html2canvas for PDF generation (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-Itd3r2M3nYFq3vHyCuXapnwXCfJOLLmObAun1vDLteA94ppIqh+apMI2vlA38nSxrdbidKdvUSsfxq4dT8ni4w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNa5lT0HUUqP3kqQ4r79Ths8VL1UYqYpjQf7g1dV9xzvYp36KvwB0RJpcJn/abNqxabWWMwBLT1RghJhMZg7mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <style>
+    :root {
+      --bg-dark: #050816;
+      --bg-panel: rgba(6, 18, 46, 0.92);
+      --bg-panel-soft: rgba(11, 27, 68, 0.96);
+      --accent-red: #ff365c;
+      --accent-blue: #3ea6ff;
+      --accent-gold: #ffdd7a;
+      --border-strong: rgba(255, 255, 255, 0.30);
+      --text-main: #f8fbff;
+      --text-muted: #a2b0d0;
+      --radius-xl: 24px;
+      --radius-md: 14px;
+      --shadow-soft: 0 22px 60px rgba(0, 0, 0, 0.55);
+      --shadow-chip: 0 10px 25px rgba(0, 0, 0, 0.5);
+      --transition-fast: 180ms ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-main);
+      background:
+        radial-gradient(circle at 0% 0%, #182952 0, transparent 55%),
+        radial-gradient(circle at 100% 100%, #2a103f 0, transparent 55%),
+        radial-gradient(circle at 0% 100%, #40200b 0, transparent 45%),
+        linear-gradient(145deg, #050816 0%, #071326 50%, #02030a 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 90px 90px;
+      mix-blend-mode: soft-light;
+      opacity: 0.55;
+      z-index: -1;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.75rem 1.25rem 3rem;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+    }
+
+    .brand-logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 18px;
+      background:
+        conic-gradient(from 220deg, var(--accent-blue), var(--accent-red), var(--accent-gold), var(--accent-blue));
+      padding: 2px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+    }
+
+    .brand-logo-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      background: radial-gradient(circle at 30% 0%, #ffffff33 0, transparent 60%), #050816;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Space Grotesk", system-ui, sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      font-size: 0.85rem;
+      color: #ffffff;
+    }
+
+    .brand-text h1 {
+      font-family: "Space Grotesk", system-ui, sans-serif;
+      text-transform: uppercase;
+      font-size: clamp(1.25rem, 2.1vw, 1.65rem);
+      letter-spacing: 0.14em;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .brand-text h1 span {
+      background: linear-gradient(120deg, var(--accent-blue), var(--accent-red));
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .brand-sub {
+      margin-top: 0.2rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .access-toggle {
+      display: inline-flex;
+      padding: 0.25rem;
+      border-radius: 999px;
+      background: rgba(4, 11, 34, 0.9);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .access-toggle button {
+      position: relative;
+      z-index: 2;
+      border: none;
+      background: none;
+      padding: 0.5rem 1.2rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color var(--transition-fast), transform var(--transition-fast);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .access-toggle button span.chip {
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--accent-blue);
+      opacity: 0.6;
+    }
+
+    .access-toggle button.active span.chip {
+      background: #fff;
+      opacity: 1;
+    }
+
+    .access-toggle button.active {
+      color: #02030a;
+      transform: translateY(-1px);
+    }
+
+    .access-toggle-indicator {
+      position: absolute;
+      inset: 3px;
+      width: calc(50% - 3px);
+      border-radius: 999px;
+      background: radial-gradient(circle at 0% 0%, #fff 0, #bcdcff 35%, #63b3ff 100%);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.6);
+      transform: translateX(0%);
+      transition: transform 220ms cubic-bezier(0.3, 0.9, 0.3, 1.2);
+      z-index: 1;
+    }
+
+    .access-toggle.employee-active .access-toggle-indicator {
+      transform: translateX(100%);
+    }
+
+    .hero-note {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      max-width: 480px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.4fr);
+      gap: 1.7rem;
+    }
+
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    /* PANEL STYLES */
+    .panel {
+      position: relative;
+      border-radius: var(--radius-xl);
+      padding: 1.4rem 1.4rem 1.6rem;
+      background: linear-gradient(135deg, rgba(17, 37, 88, 0.96), rgba(7,19,46,0.96));
+      border: 1px solid rgba(255,255,255,0.16);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(62,166,255,0.22) 0, transparent 50%),
+        radial-gradient(circle at 80% 100%, rgba(255,54,92,0.2) 0, transparent 52%);
+      opacity: 0.9;
+      mix-blend-mode: screen;
+      z-index: -1;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .panel-title {
+      font-family: "Space Grotesk", system-ui, sans-serif;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      color: var(--accent-gold);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .panel-title::before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-red));
+    }
+
+    .panel-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      max-width: 340px;
+    }
+
+    .badge-pill {
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.22);
+      font-size: 0.68rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(135deg, rgba(1,8,23,0.8), rgba(30,45,102,0.9));
+    }
+
+    .badge-pill span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent-red);
+      box-shadow: 0 0 12px rgba(255,54,92,0.9);
+    }
+
+    /* FORM */
+    form {
+      margin-top: 0.7rem;
+      display: grid;
+      gap: 0.8rem;
+    }
+
+    fieldset {
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 0.75rem 0.9rem 0.9rem;
+      background: linear-gradient(145deg, rgba(10, 22, 60, 0.9), rgba(4, 9, 26, 0.95));
+      position: relative;
+    }
+
+    fieldset legend {
+      padding: 0 0.45rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--accent-blue);
+      font-weight: 600;
+      font-family: "Space Grotesk", system-ui, sans-serif;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.6rem 0.7rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.6rem 0.7rem;
+    }
+
+    @media (max-width: 720px) {
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+    }
+
+    .required::after {
+      content: " *";
+      color: var(--accent-red);
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+      background: radial-gradient(circle at 0 0, rgba(255,255,255,0.08) 0, transparent 50%), rgba(3, 9, 26, 0.9);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 10px;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background 200ms ease-out, transform var(--transition-fast);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.55);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(160,180,220,0.65);
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 1px rgba(62,166,255,0.6), 0 18px 30px rgba(0,0,0,0.7);
+      transform: translateY(-1px);
+      background: radial-gradient(circle at 0 0, rgba(62,166,255,0.2) 0, transparent 58%), rgba(3, 9, 26, 0.96);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    .inline-hints {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 1.1rem;
+      margin-top: 0.5rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .inline-hints span {
+      position: relative;
+      padding-left: 0.7rem;
+    }
+
+    .inline-hints span::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.45em;
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 999px;
+      background: var(--accent-blue);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.4rem;
+    }
+
+    .chip {
+      border-radius: 999px;
+      padding: 0.25rem 0.55rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      background: rgba(255,255,255,0.04);
+      border: 1px dashed rgba(255,255,255,0.26);
+      color: var(--text-muted);
+    }
+
+    .chip strong {
+      color: var(--accent-gold);
+      font-weight: 600;
+    }
+
+    .actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      justify-content: flex-end;
+      margin-top: 0.6rem;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 0.55rem 1.2rem;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), background 200ms ease-out, color 200ms ease-out;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(120deg, var(--accent-red), #ff7a3d);
+      color: #050816;
+      box-shadow: 0 18px 35px rgba(0,0,0,0.7), 0 0 18px rgba(255,54,92,0.7);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 22px 40px rgba(0,0,0,0.8), 0 0 24px rgba(255,54,92,0.9);
+    }
+
+    .btn-ghost {
+      background: rgba(5, 10, 30, 0.8);
+      color: var(--text-main);
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.65);
+    }
+
+    .btn-ghost:hover {
+      transform: translateY(-1px);
+      background: rgba(8, 20, 60, 0.95);
+    }
+
+    .btn svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
+
+    .helper-text {
+      margin-top: 0.25rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* EMPLOYEE PANEL */
+    .employee-panel {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .employee-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .employee-tagline {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      max-width: 260px;
+    }
+
+    .employee-list {
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: linear-gradient(155deg, rgba(3, 9, 26, 0.96), rgba(11,26,69,0.96));
+      max-height: 420px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .employee-list-header {
+      display: grid;
+      grid-template-columns: 1.3fr 1.2fr 0.9fr auto;
+      gap: 0.5rem;
+      padding: 0.55rem 0.85rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(255,255,255,0.16);
+      background: radial-gradient(circle at 0 0, rgba(255,255,255,0.08) 0, transparent 55%);
+    }
+
+    .employee-list-body {
+      overflow-y: auto;
+    }
+
+    .employee-row {
+      display: grid;
+      grid-template-columns: 1.3fr 1.2fr 0.9fr auto;
+      gap: 0.5rem;
+      padding: 0.55rem 0.85rem;
+      font-size: 0.78rem;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .employee-row:nth-child(2n) {
+      background: rgba(12, 24, 64, 0.75);
+    }
+
+    .status-pill {
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      border: 1px solid rgba(255,255,255,0.28);
+      background: rgba(4, 18, 40, 0.9);
+    }
+
+    .status-pill.pending {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold);
+    }
+
+    .status-pill.downloaded {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    .status-pill.deleted {
+      border-color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.6);
+      text-decoration: line-through;
+    }
+
+    .employee-row-actions {
+      display: flex;
+      gap: 0.4rem;
+      justify-content: flex-end;
+    }
+
+    .btn-icon {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(6, 18, 50, 0.95);
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), background 180ms ease-out, border-color 180ms ease-out;
+      box-shadow: var(--shadow-chip);
+    }
+
+    .btn-icon svg {
+      width: 13px;
+      height: 13px;
+      fill: currentColor;
+    }
+
+    .btn-icon.download {
+      color: var(--accent-blue);
+    }
+
+    .btn-icon.delete {
+      color: var(--accent-red);
+    }
+
+    .btn-icon:hover {
+      transform: translateY(-1px) scale(1.05);
+      background: rgba(10, 26, 70, 1);
+      border-color: #fff;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.75);
+    }
+
+    .empty-state {
+      padding: 0.9rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* CONDITIONAL SECTIONS */
+    .hidden {
+      display: none !important;
+    }
+
+    /* LOGIN STRIP FOR EMPLOYEES */
+    .employee-login {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .employee-login input {
+      width: 115px;
+      padding: 0.3rem 0.5rem;
+      font-size: 0.8rem;
+      box-shadow: none;
+    }
+
+    .employee-login button {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.45);
+      background: rgba(2, 8, 26, 0.95);
+      color: var(--text-main);
+      padding: 0.25rem 0.7rem;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.65);
+    }
+
+    .employee-login button:hover {
+      background: rgba(5, 18, 54, 1);
+      transform: translateY(-1px);
+      box-shadow: 0 14px 28px rgba(0,0,0,0.75);
+    }
+
+    .login-status {
+      font-size: 0.72rem;
+      color: var(--accent-gold);
+    }
+
+    footer {
+      margin-top: 2.2rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      border-top: 1px solid rgba(255,255,255,0.14);
+      padding-top: 0.7rem;
+    }
+
+    .footer-tagline {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    /* ORDER FORM PRINT TEMPLATE */
+    #printTemplateWrapper {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 9999;
+    }
+
+    #printTemplateBackdrop {
+      position: absolute;
+      inset: 0;
+    }
+
+    #printTemplate {
+      width: 850px;
+      max-width: 100%;
+      background: #ffffff;
+      color: #000000;
+      font-family: "Times New Roman", "DM Sans", serif;
+      font-size: 10px;
+      padding: 18px 22px;
+      border-radius: 6px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.9);
+      overflow: auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    #printTemplate h2 {
+      text-align: center;
+      font-size: 14px;
+      margin: 0 0 2px;
+      text-transform: uppercase;
+    }
+
+    #printTemplate h3 {
+      text-align: center;
+      font-size: 10px;
+      margin: 0 0 6px;
+    }
+
+    #printTemplate table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 4px;
+    }
+
+    #printTemplate th,
+    #printTemplate td {
+      border: 1px solid #000;
+      padding: 2px 3px;
+      vertical-align: top;
+    }
+
+    #printTemplate .section-title {
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 9px;
+      background: #e6e6e6;
+    }
+
+    #printTemplate .small {
+      font-size: 8px;
+    }
+
+    #printTemplate .tight {
+      padding: 1px 2px;
+    }
+
+    .print-close-btn {
+      position: absolute;
+      right: 22px;
+      top: 16px;
+      background: #111827;
+      color: #f9fafb;
+      border-radius: 999px;
+      padding: 0.25rem 0.7rem;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+    }
+
+    .toast {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      min-width: 220px;
+      max-width: 320px;
+      padding: 0.7rem 0.9rem;
+      border-radius: 14px;
+      background: rgba(3, 12, 32, 0.96);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: var(--text-main);
+      font-size: 0.8rem;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.8);
+      display: none;
+      z-index: 99999;
+    }
+
+    .toast strong {
+      display: block;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      margin-bottom: 0.15rem;
+      color: var(--accent-blue);
+    }
+
+    .toast.show {
+      display: block;
+      animation: toastIn 220ms ease-out forwards;
+    }
+
+    @keyframes toastIn {
+      from { transform: translateY(12px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Staggered reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: revealUp 520ms cubic-bezier(0.3, 0.7, 0.2, 1) forwards;
+    }
+
+    .reveal.delay-1 { animation-delay: 120ms; }
+    .reveal.delay-2 { animation-delay: 220ms; }
+    .reveal.delay-3 { animation-delay: 320ms; }
+
+    @keyframes revealUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header class="reveal">
+    <div class="brand-mark">
+      <div class="brand-logo">
+        <div class="brand-logo-inner">
+          <span>NTV</span>
+        </div>
+      </div>
+      <div class="brand-text">
+        <h1><span>National TV</span> Sales &amp; Rental</h1>
+        <div class="brand-sub">Customer Order Portal</div>
+      </div>
+    </div>
+    <div>
+      <div class="access-toggle" id="accessToggle">
+        <div class="access-toggle-indicator" aria-hidden="true"></div>
+        <button type="button" id="customerTab" class="active" aria-pressed="true">
+          <span class="chip"></span>
+          Customer Access
+        </button>
+        <button type="button" id="employeeTab" aria-pressed="false">
+          <span class="chip"></span>
+          Employee Access
+        </button>
+      </div>
+      <p class="hero-note">
+        Customers submit a secure digital version of the original order form.
+        Employees can download a print‑ready PDF that matches the paper form and
+        delete completed applications.
+      </p>
+    </div>
+  </header>
+
+  <section class="layout">
+    <!-- CUSTOMER PANEL -->
+    <section id="customerPanel" class="panel reveal delay-1" aria-label="Customer order form">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Customer Order Form</div>
+          <p class="panel-subtitle">
+            Fill out each section as it appears on the original NATIONAL TV SALES AND
+            RENTAL Customer Order Form. Fields marked with an asterisk are required.
+          </p>
+        </div>
+        <div class="badge-pill">
+          <span class="dot"></span>
+          Live application
+        </div>
+      </div>
+
+      <form id="orderForm" autocomplete="on">
+        <!-- CUSTOMER INFORMATION -->
+        <fieldset>
+          <legend>Customer Information</legend>
+          <div class="grid-2">
+            <div class="form-row">
+              <label for="customerName" class="required">Customer Name</label>
+              <input id="customerName" name="customerName" type="text" required placeholder="Last, First, Middle Initial" />
+            </div>
+            <div class="form-row">
+              <label for="spouseName">Spouse / Co‑Applicant</label>
+              <input id="spouseName" name="spouseName" type="text" placeholder="If applicable" />
+            </div>
+            <div class="form-row">
+              <label for="address" class="required">Street Address</label>
+              <input id="address" name="address" type="text" required placeholder="Street, Apt / Unit" />
+            </div>
+            <div class="form-row">
+              <label for="cityStateZip" class="required">City, State, ZIP</label>
+              <input id="cityStateZip" name="cityStateZip" type="text" required placeholder="e.g., Springfield, MO 65804" />
+            </div>
+            <div class="form-row">
+              <label for="homePhone" class="required">Home Phone</label>
+              <input id="homePhone" name="homePhone" type="tel" required placeholder="(555) 555‑5555" />
+            </div>
+            <div class="form-row">
+              <label for="workPhone">Work Phone</label>
+              <input id="workPhone" name="workPhone" type="tel" placeholder="(555) 555‑5555" />
+            </div>
+            <div class="form-row">
+              <label for="email" class="required">Email</label>
+              <input id="email" name="email" type="email" required placeholder="name@example.com" />
+            </div>
+            <div class="form-row">
+              <label for="dob" class="required">Date of Birth</label>
+              <input id="dob" name="dob" type="date" required />
+            </div>
+            <div class="form-row">
+              <label for="maritalStatus" class="required">Marital Status</label>
+              <select id="maritalStatus" name="maritalStatus" required>
+                <option value="">Select one</option>
+                <option value="single">Single</option>
+                <option value="married">Married</option>
+                <option value="separated">Separated</option>
+                <option value="divorced">Divorced</option>
+                <option value="widowed">Widowed</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="residenceType" class="required">Residence Type</label>
+              <select id="residenceType" name="residenceType" required>
+                <option value="">Select one</option>
+                <option value="rent">Rent</option>
+                <option value="own">Own</option>
+                <option value="liveWithParents">Live with Parents</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="timeAtAddressYears" class="required">Time at Address (Years)</label>
+              <input id="timeAtAddressYears" name="timeAtAddressYears" type="number" min="0" step="1" required />
+            </div>
+            <div class="form-row">
+              <label for="timeAtAddressMonths">Time at Address (Months)</label>
+              <input id="timeAtAddressMonths" name="timeAtAddressMonths" type="number" min="0" max="11" step="1" />
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- PREVIOUS ADDRESS (IF THEN) -->
+        <fieldset id="previousAddressFieldset" class="hidden">
+          <legend>Previous Address (If less than 2 years at current)</legend>
+          <div class="grid-2">
+            <div class="form-row">
+              <label for="prevAddress">Previous Street Address</label>
+              <input id="prevAddress" name="prevAddress" type="text" placeholder="Street, Apt / Unit" />
+            </div>
+            <div class="form-row">
+              <label for="prevCityStateZip">Previous City, State, ZIP</label>
+              <input id="prevCityStateZip" name="prevCityStateZip" type="text" placeholder="City, State, ZIP" />
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- SOURCE OF INCOME -->
+        <fieldset>
+          <legend>Source of Income</legend>
+          <div class="grid-3">
+            <div class="form-row">
+              <label for="employerName" class="required">Employer</label>
+              <input id="employerName" name="employerName" type="text" required placeholder="Company name" />
+            </div>
+            <div class="form-row">
+              <label for="employerPhone" class="required">Employer Phone</label>
+              <input id="employerPhone" name="employerPhone" type="tel" required placeholder="(555) 555‑5555" />
+            </div>
+            <div class="form-row">
+              <label for="position" class="required">Position / Title</label>
+              <input id="position" name="position" type="text" required placeholder="Job title" />
+            </div>
+            <div class="form-row">
+              <label for="timeOnJobYears" class="required">Time on Job (Years)</label>
+              <input id="timeOnJobYears" name="timeOnJobYears" type="number" min="0" step="1" required />
+            </div>
+            <div class="form-row">
+              <label for="timeOnJobMonths">Time on Job (Months)</label>
+              <input id="timeOnJobMonths" name="timeOnJobMonths" type="number" min="0" max="11" step="1" />
+            </div>
+            <div class="form-row">
+              <label for="monthlyIncome" class="required">Net Monthly Income</label>
+              <input id="monthlyIncome" name="monthlyIncome" type="number" min="0" step="0.01" required placeholder="0.00" />
+            </div>
+            <div class="form-row">
+              <label for="otherIncomeType">Other Income Type</label>
+              <select id="otherIncomeType" name="otherIncomeType">
+                <option value="">None</option>
+                <option value="socialSecurity">Social Security</option>
+                <option value="disability">Disability</option>
+                <option value="retirement">Retirement</option>
+                <option value="childSupport">Child Support / Alimony</option>
+                <option value="other">Other Verified Income</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="otherIncomeAmount">Other Income Amount</label>
+              <input id="otherIncomeAmount" name="otherIncomeAmount" type="number" min="0" step="0.01" placeholder="0.00" />
+            </div>
+            <div class="form-row">
+              <label for="payFrequency" class="required">Pay Frequency</label>
+              <select id="payFrequency" name="payFrequency" required>
+                <option value="">Select one</option>
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Every 2 Weeks</option>
+                <option value="twiceMonth">Twice per Month</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="inline-hints">
+            <span>Attach proof of income for all sources</span>
+            <span>Income must be verifiable</span>
+          </div>
+        </fieldset>
+
+        <!-- PERSONAL REFERENCES -->
+        <fieldset>
+          <legend>Personal References</legend>
+          <div class="grid-3">
+            <div class="form-row">
+              <label for="ref1Name" class="required">Reference 1 – Name</label>
+              <input id="ref1Name" name="ref1Name" type="text" required />
+            </div>
+            <div class="form-row">
+              <label for="ref1Phone" class="required">Reference 1 – Phone</label>
+              <input id="ref1Phone" name="ref1Phone" type="tel" required />
+            </div>
+            <div class="form-row">
+              <label for="ref1Relation" class="required">Reference 1 – Relationship</label>
+              <input id="ref1Relation" name="ref1Relation" type="text" required />
+            </div>
+            <div class="form-row">
+              <label for="ref2Name" class="required">Reference 2 – Name</label>
+              <input id="ref2Name" name="ref2Name" type="text" required />
+            </div>
+            <div class="form-row">
+              <label for="ref2Phone" class="required">Reference 2 – Phone</label>
+              <input id="ref2Phone" name="ref2Phone" type="tel" required />
+            </div>
+            <div class="form-row">
+              <label for="ref2Relation" class="required">Reference 2 – Relationship</label>
+              <input id="ref2Relation" name="ref2Relation" type="text" required />
+            </div>
+          </div>
+          <p class="helper-text">
+            References should be people who have known you for at least 1 year and
+            are not living in your household.
+          </p>
+        </fieldset>
+
+        <!-- PRODUCT / ORDER DETAILS -->
+        <fieldset>
+          <legend>Product / Order Details</legend>
+          <div class="grid-3">
+            <div class="form-row">
+              <label for="productType" class="required">Product Type</label>
+              <select id="productType" name="productType" required>
+                <option value="">Select one</option>
+                <option value="television">Television</option>
+                <option value="appliance">Appliance</option>
+                <option value="furniture">Furniture</option>
+                <option value="computer">Computer</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="productDescription" class="required">Description / Model</label>
+              <input id="productDescription" name="productDescription" type="text" required />
+            </div>
+            <div class="form-row">
+              <label for="agreementType" class="required">Agreement Type</label>
+              <select id="agreementType" name="agreementType" required>
+                <option value="">Select one</option>
+                <option value="rental">Rental</option>
+                <option value="rto">Rent‑to‑Own</option>
+                <option value="cash">Cash Sale</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="deliveryDate" class="required">Requested Delivery Date</label>
+              <input id="deliveryDate" name="deliveryDate" type="date" required />
+            </div>
+            <div class="form-row">
+              <label for="storeLocation" class="required">Store Location</label>
+              <select id="storeLocation" name="storeLocation" required>
+                <option value="">Choose store</option>
+                <option value="springfield">Springfield</option>
+                <option value="branson">Branson</option>
+                <option value="joplin">Joplin</option>
+                <option value="online">Online / Web</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="salesperson">Salesperson (If Known)</label>
+              <input id="salesperson" name="salesperson" type="text" />
+            </div>
+          </div>
+
+          <div class="chip-row">
+            <div class="chip">Standard rental term: <strong>6–24 months</strong></div>
+            <div class="chip">Subject to credit approval</div>
+            <div class="chip">Valid government ID required at delivery</div>
+          </div>
+        </fieldset>
+
+        <!-- ACKNOWLEDGEMENT -->
+        <fieldset>
+          <legend>Acknowledgement</legend>
+          <div class="form-row">
+            <label for="comments">Additional Notes</label>
+            <textarea id="comments" name="comments" placeholder="Any special delivery instructions or notes for the store."></textarea>
+          </div>
+          <div class="grid-2">
+            <div class="form-row">
+              <label for="signatureName" class="required">Digital Signature (Type Full Name)</label>
+              <input id="signatureName" name="signatureName" type="text" required />
+              <p class="helper-text">
+                By typing your name you certify that the information provided is true
+                and correct and authorize NATIONAL TV SALES AND RENTAL to verify your
+                references and employment.
+              </p>
+            </div>
+            <div class="form-row">
+              <label for="signatureDate" class="required">Signature Date</label>
+              <input id="signatureDate" name="signatureDate" type="date" required />
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="actions-row">
+          <button type="button" class="btn btn-ghost" id="previewPdfBtn">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M10 3C5 3 1.73 7.11.46 9.53a1 1 0 000 .94C1.73 12.89 5 17 10 17s8.27-4.11 9.54-6.53a1 1 0 000-.94C18.27 7.11 15 3 10 3zm0 12c-3.5 0-6.15-2.88-7.35-5C3.85 7.88 6.5 5 10 5s6.15 2.88 7.35 5C16.15 12.12 13.5 15 10 15zm0-8a3 3 0 100 6 3 3 0 000-6z"/>
+            </svg>
+            Preview PDF
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M16.53 3.47a.75.75 0 00-.79-.17l-12 4.5a.75.75 0 00-.02 1.4l5.4 2.16 2.16 5.4a.75.75 0 001.4-.02l4.5-12a.75.75 0 00-.65-1.27zM9.16 11.1L5.2 9.52l8.07-3.03-4.11 4.61zM11.48 15l-1.6-4.01 4.61-4.11L11.48 15z"/>
+            </svg>
+            Submit Application
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- EMPLOYEE PANEL -->
+    <aside id="employeePanel" class="panel reveal delay-2" aria-label="Employee access" hidden>
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Employee Console</div>
+          <p class="panel-subtitle employee-tagline">
+            Review submitted applications, generate a print‑perfect PDF that mirrors the
+            paper form, then securely delete records once processed.
+          </p>
+        </div>
+        <div class="employee-login">
+          <span>Employee PIN</span>
+          <input id="employeePinInput" type="password" maxlength="6" autocomplete="off" />
+          <button type="button" id="employeeLoginBtn">Unlock</button>
+        </div>
+      </div>
+
+      <div class="employee-panel">
+        <div class="employee-list">
+          <div class="employee-list-header">
+            <div>Customer</div>
+            <div>Store / Product</div>
+            <div>Status</div>
+            <div style="text-align:right;">Actions</div>
+          </div>
+          <div class="employee-list-body" id="employeeListBody">
+            <div class="empty-state">
+              No applications on file yet. As customers submit forms they will appear
+              here for download and processing.
+            </div>
+          </div>
+        </div>
+        <div class="employee-header">
+          <div class="badge-pill">
+            <span class="dot"></span>
+            PDF output matches original order form layout
+          </div>
+          <div class="login-status" id="loginStatus">Console locked. Enter valid PIN to manage records.</div>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <footer class="reveal delay-3">
+    <div class="footer-tagline">National TV Sales &amp; Rental &mdash; Digital Order Workflow</div>
+    <div>Once this page is deployed to GitHub Pages, we can fine‑tune colors, fields, and layout without rebuilding from scratch.</div>
+  </footer>
+</main>
+
+<!-- PRINT TEMPLATE MODAL -->
+<div id="printTemplateWrapper" aria-hidden="true">
+  <div id="printTemplateBackdrop"></div>
+  <div id="printTemplate">
+    <button class="print-close-btn" type="button" id="closePrintTemplate">Close</button>
+    <!-- HEADER -->
+    <table>
+      <tr>
+        <td colspan="4" style="border:none; font-size:11px; font-weight:bold;">NATIONAL TV SALES AND RENTAL</td>
+        <td colspan="2" style="border:none; text-align:right; font-size:9px;">Date: <span data-print="signatureDate"></span></td>
+      </tr>
+      <tr>
+        <td colspan="6" style="border:none; text-align:center;">
+          <h2 style="margin-top:2px;">Customer Order Form</h2>
+          <h3 style="margin-bottom:4px;">Please Print Clearly</h3>
+        </td>
+      </tr>
+    </table>
+
+    <!-- CUSTOMER INFORMATION -->
+    <table>
+      <tr>
+        <td colspan="6" class="section-title">Customer Information</td>
+      </tr>
+      <tr>
+        <td colspan="3">Customer Name: <span data-print="customerName"></span></td>
+        <td colspan="3">Spouse / Co‑Applicant: <span data-print="spouseName"></span></td>
+      </tr>
+      <tr>
+        <td colspan="4">Street Address: <span data-print="address"></span></td>
+        <td colspan="2">City / State / ZIP: <span data-print="cityStateZip"></span></td>
+      </tr>
+      <tr>
+        <td>Home Phone: <span data-print="homePhone"></span></td>
+        <td>Work Phone: <span data-print="workPhone"></span></td>
+        <td>Email: <span data-print="email"></span></td>
+        <td>Date of Birth: <span data-print="dob"></span></td>
+        <td>Marital Status: <span data-print="maritalStatus"></span></td>
+        <td>Residence: <span data-print="residenceType"></span></td>
+      </tr>
+      <tr>
+        <td colspan="3">Time at Address: <span data-print="timeAtAddressYears"></span> yrs
+          <span data-print="timeAtAddressMonths"></span> mos
+        </td>
+        <td colspan="3">Previous Address (if &lt; 2 yrs): <span data-print="prevAddress"></span>,
+          <span data-print="prevCityStateZip"></span>
+        </td>
+      </tr>
+    </table>
+
+    <!-- SOURCE OF INCOME -->
+    <table>
+      <tr>
+        <td colspan="6" class="section-title">Source of Income</td>
+      </tr>
+      <tr>
+        <td colspan="2">Employer: <span data-print="employerName"></span></td>
+        <td>Employer Phone: <span data-print="employerPhone"></span></td>
+        <td>Position: <span data-print="position"></span></td>
+        <td colspan="2">Time on Job: <span data-print="timeOnJobYears"></span> yrs
+          <span data-print="timeOnJobMonths"></span> mos
+        </td>
+      </tr>
+      <tr>
+        <td>Net Monthly Income: $<span data-print="monthlyIncome"></span></td>
+        <td>Pay Frequency: <span data-print="payFrequency"></span></td>
+        <td>Other Income Type: <span data-print="otherIncomeType"></span></td>
+        <td>Other Income Amount: $<span data-print="otherIncomeAmount"></span></td>
+        <td colspan="2" class="small">Income must be verifiable. Attach copies of check stubs or award letters.</td>
+      </tr>
+    </table>
+
+    <!-- REFERENCES -->
+    <table>
+      <tr>
+        <td colspan="6" class="section-title">Personal References</td>
+      </tr>
+      <tr>
+        <td colspan="2">Reference 1 Name: <span data-print="ref1Name"></span></td>
+        <td>Phone: <span data-print="ref1Phone"></span></td>
+        <td colspan="3">Relationship: <span data-print="ref1Relation"></span></td>
+      </tr>
+      <tr>
+        <td colspan="2">Reference 2 Name: <span data-print="ref2Name"></span></td>
+        <td>Phone: <span data-print="ref2Phone"></span></td>
+        <td colspan="3">Relationship: <span data-print="ref2Relation"></span></td>
+<td colspan="6" class="section-title">Personal References</td>
+      </tr>
+      <tr>
+        <td colspan="2">Reference 3 Name: <span data-print="ref1Name"></span></td>
+        <td>Phone: <span data-print="ref1Phone"></span></td>
+        <td colspan="3">Relationship: <span data-print="ref1Relation"></span></td>
+      </tr>
+      <tr>
+        <td colspan="2">Reference 4 Name: <span data-print="ref2Name"></span></td>
+        <td>Phone: <span data-print="ref2Phone"></span></td>
+        <td colspan="3">Relationship: <span data-print="ref2Relation"></span></td>
+<tr>
+        <td colspan="2">Reference 5 Name: <span data-print="ref2Name"></span></td>
+        <td>Phone: <span data-print="ref2Phone"></span></td>
+        <td colspan="3">Relationship: <span data-print="ref2Relation"></span></td>
+      </tr>
+    </table>
+
+    <!-- ACKNOWLEDGEMENT -->
+    <table>
+      <tr>
+        <td colspan="6" class="section-title">Acknowledgement</td>
+      </tr>
+      <tr>
+        <td colspan="6">
+          Additional Notes / Delivery Instructions:<br>
+          <span data-print="comments"></span>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="3">
+          Applicant Signature (digital): <span data-print="signatureName"></span>
+        </td>
+        <td>
+          Date: <span data-print="signatureDate"></span>
+        </td>
+        <td colspan="2" class="small">
+          By signing, applicant certifies that the information provided is true and correct and authorizes NATIONAL TV SALES AND RENTAL to verify all information and obtain consumer reports as needed.
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  (() => {
+    const { jsPDF } = window.jspdf;
+
+    const customerTab = document.getElementById("customerTab");
+    const employeeTab = document.getElementById("employeeTab");
+    const accessToggle = document.getElementById("accessToggle");
+    const customerPanel = document.getElementById("customerPanel");
+    const employeePanel = document.getElementById("employeePanel");
+
+    function showToast(title, message) {
+      const toast = document.getElementById("toast");
+      toast.innerHTML = "<strong>" + title + "</strong>" + message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3500);
+    }
+
+    function switchAccess(view) {
+      const isCustomer = view === "customer";
+      customerTab.classList.toggle("active", isCustomer);
+      employeeTab.classList.toggle("active", !isCustomer);
+      customerTab.setAttribute("aria-pressed", isCustomer);
+      employeeTab.setAttribute("aria-pressed", !isCustomer);
+      customerPanel.hidden = !isCustomer;
+      employeePanel.hidden = isCustomer;
+      accessToggle.classList.toggle("employee-active", !isCustomer);
+    }
+
+    customerTab.addEventListener("click", () => switchAccess("customer"));
+    employeeTab.addEventListener("click", () => switchAccess("employee"));
+
+    const timeAtAddressYearsInput = document.getElementById("timeAtAddressYears");
+    const previousAddressFieldset = document.getElementById("previousAddressFieldset");
+
+    function updatePreviousAddressVisibility() {
+      const years = parseInt(timeAtAddressYearsInput.value || "0", 10);
+      if (years < 2) previousAddressFieldset.classList.remove("hidden");
+      else previousAddressFieldset.classList.add("hidden");
+    }
+    timeAtAddressYearsInput.addEventListener("input", updatePreviousAddressVisibility);
+
+    function collectFormData() {
+      const form = document.getElementById("orderForm");
+      const data = {};
+      const formData = new FormData(form);
+      for (const [key, value] of formData.entries()) {
+        data[key] = value.trim();
+      }
+      return data;
+    }
+
+    function fillPrintTemplate(data) {
+      const container = document.getElementById("printTemplate");
+      container.querySelectorAll("[data-print]").forEach(span => {
+        const key = span.getAttribute("data-print");
+        let value = data[key] || "";
+        if (key === "dob" || key === "signatureDate" || key === "deliveryDate") {
+          if (value) {
+            const d = new Date(value);
+            if (!isNaN(d)) {
+              const mm = String(d.getMonth() + 1).padStart(2, "0");
+              const dd = String(d.getDate()).padStart(2, "0");
+              const yyyy = d.getFullYear();
+              value = mm + "/" + dd + "/" + yyyy;
+            }
+          }
+        }
+        span.textContent = value;
+      });
+    }
+
+    const printWrapper = document.getElementById("printTemplateWrapper");
+    const closePrintBtn = document.getElementById("closePrintTemplate");
+    const printBackdrop = document.getElementById("printTemplateBackdrop");
+
+    function openPrintTemplate(data) {
+      fillPrintTemplate(data);
+      printWrapper.style.display = "flex";
+      printWrapper.setAttribute("aria-hidden", "false");
+    }
+
+    function closePrintTemplate() {
+      printWrapper.style.display = "none";
+      printWrapper.setAttribute("aria-hidden", "true");
+    }
+
+    closePrintBtn.addEventListener("click", closePrintTemplate);
+    printBackdrop.addEventListener("click", closePrintTemplate);
+
+    async function generatePDFfromTemplate(application) {
+      openPrintTemplate(application);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const element = document.getElementById("printTemplate");
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff"
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "pt", "letter");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+      const imgWidth = canvas.width * ratio;
+      const imgHeight = canvas.height * ratio;
+      const x = (pageWidth - imgWidth) / 2;
+      const y = (pageHeight - imgHeight) / 2;
+      pdf.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+      const filename = (application.customerName || "application").replace(/[^\w\-]+/g, "_") + "_order_form.pdf";
+      pdf.save(filename);
+      closePrintTemplate();
+    }
+
+    const previewBtn = document.getElementById("previewPdfBtn");
+    previewBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const form = document.getElementById("orderForm");
+      if (!form.reportValidity()) return;
+      const data = collectFormData();
+      openPrintTemplate(data);
+    });
+
+    const APPLICATIONS_KEY = "ntv_applications_v1";
+
+    function saveApplication(data) {
+      const existing = JSON.parse(localStorage.getItem(APPLICATIONS_KEY) || "[]");
+      const id = "APP-" + Date.now();
+      const record = {
+        id,
+        createdAt: new Date().toISOString(),
+        status: "pending",
+        ...data
+      };
+      existing.push(record);
+      localStorage.setItem(APPLICATIONS_KEY, JSON.stringify(existing));
+      return record;
+    }
+
+    function loadApplications() {
+      return JSON.parse(localStorage.getItem(APPLICATIONS_KEY) || "[]");
+    }
+
+    function updateApplications(apps) {
+      localStorage.setItem(APPLICATIONS_KEY, JSON.stringify(apps));
+    }
+
+    function renderEmployeeList() {
+      const body = document.getElementById("employeeListBody");
+      const apps = loadApplications();
+      body.innerHTML = "";
+
+      if (!apps.length) {
+        body.innerHTML = '<div class="empty-state">No applications on file.</div>';
+        return;
+      }
+
+      apps.slice().reverse().forEach(app => {
+        const row = document.createElement("div");
+        row.className = "employee-row";
+        const created = new Date(app.createdAt);
+        const createdStr = isNaN(created) ? "" : created.toLocaleDateString();
+
+        row.innerHTML = `
+          <div>
+            <strong>${app.customerName || "Unnamed"}</strong><br>
+            <span style="font-size:0.72rem; color:rgba(226,232,255,0.75);">${app.cityStateZip || ""}</span>
+          </div>
+          <div>
+            <span style="font-size:0.78rem;">${app.storeLocation || ""}</span><br>
+            <span style="font-size:0.72rem; color:rgba(226,232,255,0.75);">${app.productType || ""} – ${app.productDescription || ""}</span>
+          </div>
+          <div>
+            <span class="status-pill ${app.status}">${app.status}</span><br>
+            <span style="font-size:0.7rem; color:rgba(226,232,255,0.7);">Submitted: ${createdStr}</span>
+          </div>
+          <div class="employee-row-actions">
+            <button class="btn-icon download" data-action="download" title="Download PDF">
+              <svg viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v8.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4A1 1 0 116.707 9.293L9 11.586V3a1 1 0 011-1z"/><path d="M4 15a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1z"/></svg>
+            </button>
+            <button class="btn-icon delete" data-action="delete" title="Delete application">
+              <svg viewBox="0 0 20 20"><path d="M7 2a2 2 0 00-2 2H3.5a.5.5 0 000 1h13a.5.5 0 000-1H15a2 2 0 00-2-2H7zm1 3a1 1 0 000 2v7a1 1 0 102 0V7a1 1 0 000-2H8zm4 0a1 1 0 000 2v7a1 1 0 102 0V7a1 1 0 000-2h-2z"/></svg>
+            </button>
+          </div>
+        `;
+
+        row.querySelectorAll("button").forEach(btn => {
+          btn.addEventListener("click", async (e) => {
+            const action = btn.getAttribute("data-action");
+            if (!employeeUnlocked) {
+              showToast("Locked", "Enter valid employee PIN to manage applications.");
+              return;
+            }
+            if (action === "download") {
+              await generatePDFfromTemplate(app);
+              const apps = loadApplications();
+              const idx = apps.findIndex(a => a.id === app.id);
+              if (idx >= 0) {
+                apps[idx].status = "downloaded";
+                updateApplications(apps);
+                renderEmployeeList();
+              }
+            } else if (action === "delete") {
+              if (!confirm("Delete this application permanently?")) return;
+              const apps = loadApplications().filter(a => a.id !== app.id);
+              updateApplications(apps);
+              renderEmployeeList();
+              showToast("Deleted", "Application has been removed from storage.");
+            }
+          });
+        });
+
+        body.appendChild(row);
+      });
+    }
+
+    const form = document.getElementById("orderForm");
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!form.reportValidity()) return;
+      const data = collectFormData();
+      const record = saveApplication(data);
+      form.reset();
+      updatePreviousAddressVisibility();
+      renderEmployeeList();
+      showToast("Submitted", "Your application has been securely sent to the store.");
+      console.log("Saved application:", record);
+    });
+
+    let employeeUnlocked = false;
+    const EMPLOYEE_PIN = "4321";
+    const employeePinInput = document.getElementById("employeePinInput");
+    const employeeLoginBtn = document.getElementById("employeeLoginBtn");
+    const loginStatus = document.getElementById("loginStatus");
+
+    function setEmployeeLockState(unlocked) {
+      employeeUnlocked = unlocked;
+      loginStatus.textContent = unlocked
+        ? "Console unlocked. You may download or delete applications."
+        : "Console locked. Enter valid PIN to manage records.";
+      loginStatus.style.color = unlocked ? "var(--accent-blue)" : "var(--accent-gold)";
+    }
+
+    employeeLoginBtn.addEventListener("click", () => {
+      if (employeePinInput.value === EMPLOYEE_PIN) {
+        setEmployeeLockState(true);
+        showToast("Employee Verified", "You may now download and delete applications.");
+      } else {
+        setEmployeeLockState(false);
+        showToast("Invalid PIN", "The PIN you entered is not correct.");
+      }
+      employeePinInput.value = "";
+    });
+
+    employeePinInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        employeeLoginBtn.click();
+      }
+    });
+
+    renderEmployeeList();
+
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("reveal");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.2 });
+
+      document.querySelectorAll("fieldset").forEach(el => {
+        el.classList.add("pre-reveal");
+        observer.observe(el);
+      });
+    }
+  })();
+</script>
+</body>
+</html>
